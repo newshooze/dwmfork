@@ -1491,9 +1491,9 @@ run(void)
 	XSync(dpy, False);
 	while (running)
 	{
-		/* Update the system tray clock every 60 seconds */
+#define CLOCK_UPDATE_INTERVAL 10 
+		/* Update the system tray clock every X seconds */
 		fd_set infiledescriptor;
-#define CLOCK_UPDATE_INTERVAL 30 
 		struct timeval timer = {CLOCK_UPDATE_INTERVAL,0};
 		FD_ZERO(&infiledescriptor);
 		FD_SET(x11connection,&infiledescriptor);
