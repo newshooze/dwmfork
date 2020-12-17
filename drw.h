@@ -58,6 +58,5 @@ void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h)
 
 
 /* VZ */
-
-void drawtransparentxpmfromdata(Drw *drw,int x,int y,char **data);
-void createclipmaskfromdata(Drw *drw,int x,int y,unsigned int w,unsigned int h,char **data);
+void drawxpmfromfile(Drw *drw,unsigned int x,unsigned int y,char *filename);
+void drawxpmfromdata(Drw *drw,unsigned int x,unsigned int y,char **data);

@@ -142,7 +142,8 @@ void pulse_deinit(struct pulseaudio_t *pulse)
 	pa_mainloop_free(pulse->mainloop);
 	free(pulse->default_sink);
 }
-#ifdef PAV_USE_AS_LIBRARY 
+/* TODO - Remove this preprocessor def? */
+//#ifdef PAV_USE_AS_LIBRARY 
 void pulseinit()
 {
 	pulse_init(&pulseaudioobject);
@@ -189,7 +190,7 @@ int pulsegetvolumepercent()
 	return (int)f;
 }
 
-#endif
+//#endif
 
 #ifndef PAV_USE_AS_LIBRARY
 void printusage()

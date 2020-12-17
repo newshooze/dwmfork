@@ -46,8 +46,9 @@
 #include "drw.h"
 #include "util.h"
 #include "pavolume.h"
-#include "chromium.xpm"
-#include "terminal.xpm"
+#include "web.xpm"
+#include "term.xpm"
+#include "paint.xpm"
 //#include "note.xpm"
 
 /* macros */
@@ -72,7 +73,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,ClkClientWin,ClkRootWin,ClkTray1,ClkTray0,ClkVolume,ClkClock,ClkLast }; /* clicks */
+enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,ClkClientWin,ClkRootWin,ClkTray2,ClkTray1,ClkTray0,ClkVolume,ClkClock,ClkLast }; /* clicks */
 
 typedef union {
 	int i;
@@ -465,9 +466,12 @@ buttonpress(XEvent *e)
 		if (ev->x > x && ev->x < x + blw)
 			click = ClkLtSymbol;
 		/* window title area */
-		else if(ev->x > x + blw && ev->x < m->ww - clockwidth - volumetraywidth - bh - bh)
+		else if(ev->x > x + blw && ev->x < m->ww - clockwidth - volumetraywidth - bh - bh - bh)
 			click = ClkWinTitle;
 		/* system tray area */
+		/* gimp launcher */
+		else if(ev->x > m->ww - clockwidth - volumetraywidth - bh - bh - bh && ev->x < m->ww - clockwidth - volumetraywidth - bh - bh)
+			click = ClkTray2;
 		/* terminal launcher */
 		else if(ev->x > m->ww - clockwidth - volumetraywidth - bh - bh && ev->x < m->ww - clockwidth - volumetraywidth - bh)
 			click = ClkTray1;
@@ -503,15 +507,20 @@ changeaudiosetting(const Arg *arg)
 {
 	if(!arg)
 		return;
+#ifdef DWM_PULSEAUDIO
 	if(arg->ui == TOGGLE_MUTE)
 		pulsemuted() ? pulseunmute() : pulsemute();
 	else
 	{
-		/* scroll wheel unmutes audio if it's muted. */
-		pulseunmute();
 		/* this has range guard 0-100 */
 		pulsechangevolumebypercent(arg->i);
+		if(pulsegetvolumepercent()  < 1)
+			pulsemute();
+		else
+		/* scroll wheel unmutes audio if it's muted. */
+		pulseunmute();
 	}
+#endif
 	drawbars();
 }
 
@@ -534,7 +543,9 @@ cleanup(void)
 	Monitor *m;
 	size_t i;
 	/* vz */
+#ifdef DWM_PULSEAUDIO
 	pulsedeinit();
+#endif
 	view(&a);
 	selmon->lt[selmon->sellt] = &foo;
 	for (m = mons; m; m = m->next)
@@ -801,14 +812,18 @@ drawbar(Monitor *m)
 	if(!*clockstring)
 		gettimestringpretty(clockstring,MAX_DATE_LENGTH);
 	int csw = TEXTW(clockstring);
-	x = m->ww - csw - volumetraywidth - bh - bh;
+	x = m->ww - csw - volumetraywidth - bh - bh - bh;
 	/* Fill in the tray with background color first */
-	drw_rect(drw,x-bh,0,m->ww - x,bh,1,1);
+	drw_rect(drw,x,0,m->ww - x,bh,1,1);
+	/* Draw gimp launcher */
+	drawxpmfromdata(drw,x,4,paint_xpm);
+	x+=bh;
 	/* Draw terminal launcher */
-	drawtransparentxpmfromdata(drw,x,4,terminal_xpm);
+	drawxpmfromdata(drw,x,4,term_xpm);
 	x+=bh;
 	/* Draw web browser launcher */
-	drawtransparentxpmfromdata(drw,x,4,chromium_xpm);
+	drawxpmfromdata(drw,x,4,web_xpm);
+#ifdef DWM_PULSEAUDIO
 	x+=bh;
 	float currentvolume = pulsegetvolumepercent();
 	int volumebarwidth = volumetraywidth - 4;
@@ -823,6 +838,7 @@ drawbar(Monitor *m)
 		/* Draw volume slider */
 		drw_rect(drw,x+2,6,volumebarwidth * currentvolume / 100,bh-12,1,1);
 	}
+#endif
 	x = m->ww - csw;
 	/* draw clock */
 	drw_text(drw,x,0,csw,bh,lrpad/2,clockstring,0);
@@ -1666,10 +1682,11 @@ setup(void)
 	int i;
 	XSetWindowAttributes wa;
 	Atom utf8string;
+#ifdef DWM_PULSEAUDIO
 	/* vz */
 	/* init pulseaudio */
 	pulseinit();
-
+#endif
 	/* clean up any zombies immediately */
 	sigchld(0);
 	/* init screen */

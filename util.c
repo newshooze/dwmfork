@@ -52,6 +52,6 @@ char *getcurrenttimestring(char *inout,int maxsize)
 {
 	time_t now = time(NULL);
 	struct tm *t = localtime(&now);
-	snprintf(inout,maxsize,"%d_%d_%d_%d_%d_%d.xpm",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min,t->tm_sec); // int
+	snprintf(inout,maxsize,"%02d_%02d_%d_%02d_%02d_%02d.xpm",t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour,t->tm_min,t->tm_sec); // int
 	return inout;
 }

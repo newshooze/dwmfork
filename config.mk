@@ -24,6 +24,10 @@ FREETYPEINC = /usr/include/freetype2
 PULSEAUDIOLIBS = -lpulse
 # defines for pavolume 
 PAVOLUMEFLAGS = -DPAV_USE_AS_LIBRARY
+# use pulseaudio
+# comment out to remove the volume bar
+# or if pulseaudio is not present.
+DWMPULSEAUDIOFLAGS = -DDWM_PULSEAUDIO
 
 PTHREADLIBS = -lpthread
 
@@ -35,11 +39,12 @@ LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS} ${PULSEAUDIOLIBS} ${XPM
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
-CPPFLAGS += -DPAV_USE_AS_LIBRARY
+CPPFLAGS += ${PAVOLUMEFLAGS} ${DWMPULSEAUDIOFLAGS}
 # debug
 #CFLAGS   = -g -std=c99 -pedantic -Wall -O0 ${INCS} ${CPPFLAGS}
 # no debug
-CFLAGS   = -std=c99 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
+CFLAGS   = -march=native -mtune=native
+CFLAGS   += -std=c99 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
 LDFLAGS  = ${LIBS}
 
 # Solaris

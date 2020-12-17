@@ -438,37 +438,31 @@ drw_cur_free(Drw *drw, Cur *cursor)
 
 /* vz */
 /* Draw an xpm with transparency. 
-	 One of the colors in the xpm colormap must be set to None.
+	 One of the colors in the xpm colormap must be set to None for transparency.
 */
-void drawtransparentxpmfromdata(Drw *drw,int x,int y,char **data)
+void drawxpmfromdata(Drw *drw,unsigned int x,unsigned int y,char **data)
 {
-	Pixmap pattern,clipper;
 	XpmAttributes xpma;
 	xpma.valuemask = XpmSize;
-	/* pattern is returned as a 1 bpp Pixmap */
-	XpmCreatePixmapFromData(drw->dpy,drw->drawable,data,&pattern,&clipper,&xpma);
-	GC lgc = XCreateGC(drw->dpy,drw->drawable,0,NULL);
-	XSetClipMask(drw->dpy,lgc,clipper); // int
-	XSetClipOrigin(drw->dpy,lgc,x,y); // int
-	/* blit the pattern on the drawable clipping by clipper */
-	XCopyArea(drw->dpy,pattern,drw->drawable,lgc,0,0,xpma.width,xpma.height,x,y); // int
-	XFreePixmap(drw->dpy,pattern); // int
-	XFreePixmap(drw->dpy,clipper); // int
-	XFreeGC(drw->dpy,lgc); // int
-}
-void createclipmaskfromdata(Drw *drw,int x,int y,unsigned int w,unsigned int h,char **data)
-{
-	Pixmap pattern,clipper;
-	/* Pattern pixmap isn't used. Only the clipper */
-	XpmCreatePixmapFromData(drw->dpy,drw->drawable,data,&pattern,&clipper,NULL); /* int  */
-	/* Set the clipmask to for the main window's gc */
-	XSetClipMask(drw->dpy,drw->gc,clipper); // int
-	XSetClipOrigin(drw->dpy,drw->gc,x,y);
-	/* Flood fill window ( Only the clipping area will be filled) */
-	XFillRectangle(drw->dpy,drw->drawable,drw->gc,x,y,w,h);
-	/* Restore the clipmask to the whole window */
+	Pixmap pattern,clipmask;
+	XpmCreatePixmapFromData(drw->dpy,drw->drawable,data,&pattern,&clipmask,&xpma); /* int  */
+	XSetClipOrigin(drw->dpy,drw->gc,x,y); // int
+	XSetClipMask(drw->dpy,drw->gc,clipmask); // int
+	XCopyArea(drw->dpy,pattern,drw->drawable,drw->gc,0,0,xpma.width,xpma.height,x,y);
 	XSetClipMask(drw->dpy,drw->gc,0); // int
 	XFreePixmap(drw->dpy,pattern); // int
-	XFreePixmap(drw->dpy,clipper); // int
+	XFreePixmap(drw->dpy,clipmask); // int
 }
-
+void drawxpmfromfile(Drw *drw,unsigned int x,unsigned int y,char *filename)
+{
+	XpmAttributes xpma;
+	xpma.valuemask = XpmSize;
+	Pixmap pattern,clipmask;
+	XpmReadFileToPixmap(drw->dpy,drw->drawable,filename,&pattern,&clipmask,&xpma); /* int  */
+	XSetClipOrigin(drw->dpy,drw->gc,x,y);
+	XSetClipMask(drw->dpy,drw->gc,clipmask);
+	XCopyArea(drw->dpy,pattern,drw->drawable,drw->gc,0,0,xpma.width,xpma.height,x,y);
+	XSetClipMask(drw->dpy,drw->gc,0);
+	XFreePixmap(drw->dpy,pattern);
+	XFreePixmap(drw->dpy,clipmask); 
+}

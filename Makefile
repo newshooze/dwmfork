@@ -8,9 +8,6 @@ OBJ = ${SRC:.c=.o}
 
 all: options dwm
 
-pulse: pavolume.c pavolume.h
-	gcc -o pavolume pavolume.c -lpulse
-
 run:
 	killall -9 dwm
 
@@ -23,7 +20,7 @@ options:
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: config.h config.mk
+${OBJ}: config.h config.mk term.xpm web.xpm
 
 config.h:
 	cp config.def.h $@
